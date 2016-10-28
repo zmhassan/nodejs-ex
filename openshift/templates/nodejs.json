@@ -30,6 +30,11 @@
             "name": "web",
             "port": 8080,
             "targetPort": 8080
+          },
+          {
+            "name": "websockets",
+            "port": 4200,
+            "targetPort": 4200
           }
         ],
         "selector": {
@@ -176,6 +181,9 @@
                 "ports": [
                   {
                     "containerPort": 8080
+                  },
+                  {
+                    "containerPort": 4200
                   }
                 ],
                 "readinessProbe": {
