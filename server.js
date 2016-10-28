@@ -3,12 +3,23 @@ var express = require('express'),
     fs      = require('fs'),
     app     = express(),
     eps     = require('ejs'),
-    morgan  = require('morgan');
-    
-Object.assign=require('object-assign')
+    morgan  = require('morgan'); //,
+    // parse application/json
+    var bodyParser = require('body-parser')
+    var server = require('http').createServer(app);
+
+    var io = require('socket.io')(server);
+
+    app.use(bodyParser.urlencoded());
+    app.use(bodyParser.json());
+
+const util = require('util');
+
+Object.assign=require('object-assign');
 
 app.engine('html', require('ejs').renderFile);
-app.use(morgan('combined'))
+//app.use(bodyParser.urlencoded({extended: true}));
+app.use(morgan('combined'));
 
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
@@ -58,6 +69,48 @@ var initDb = function(callback) {
   });
 };
 
+app.post('/foodService', function (req, res) {
+  // try to initialize the db on every request if it's not already
+  // initialized.
+  console.log("sending json to /foodService");
+   console.log(util.inspect(req.body, {showHidden: false, depth: null}))
+
+   //console.log(req.body.food);
+
+  if (!db) {
+    initDb(function(err){});
+  }
+  if (db) {
+    var col = db.collection('orders');
+    // Create a document with request IP and current time of request
+    col.insert({orders: req.body.food, date: Date.now()});
+
+
+
+  } else {
+    res.render('index.html', { pageCountMessage : null});
+  }
+});
+
+
+app.get('/foodService', function (req, res) {
+  // try to initialize the db on every request if it's not already
+  // initialized.
+  if (!db) {
+    initDb(function(err){});
+  }
+  if (db) {
+    db.collection('orders').find().toArray(function(err, results) {
+  console.log(results);
+  res.send(results);
+  // send HTML file populated with quotes here
+  });
+
+  } else {
+    res.send('{ orders: -1 }');
+  }
+});
+
 app.get('/', function (req, res) {
   // try to initialize the db on every request if it's not already
   // initialized.
@@ -90,6 +143,24 @@ app.get('/pagecount', function (req, res) {
     res.send('{ pageCount: -1 }');
   }
 });
+
+
+// Setting up websockets:
+
+io.on('connection', function(client){
+  console.log('a user connected');
+
+  client.on('sendtobackend', function(data) {
+
+       console.log("sendtobackend"+data);
+       client.emit('messages', data);
+   });
+
+
+});
+
+
+server.listen(4200);
 
 // error handling
 app.use(function(err, req, res, next){
