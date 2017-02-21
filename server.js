@@ -21,9 +21,9 @@ app.engine('html', require('ejs').renderFile);
 //app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('combined'));
 
-var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8181,
     ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
-    mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
+    mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL || "mongodb://0.0.0.0:27017/sampledb",
     mongoURLLabel = "";
 
 if (mongoURL == null && process.env.DATABASE_SERVICE_NAME) {
@@ -73,11 +73,12 @@ app.post('/foodService', function (req, res) {
   // try to initialize the db on every request if it's not already
   // initialized.
   console.log("sending json to /foodService");
-   console.log(util.inspect(req.body, {showHidden: false, depth: null}))
+   console.log(util.inspect(req.body, {showHidden: false, depth: null}));
 
-   //console.log(req.body.food);
+   console.log(req.body.food);
 
   if (!db) {
+    console.log("db error");
     initDb(function(err){});
   }
   if (db) {
@@ -107,7 +108,7 @@ app.get('/foodService', function (req, res) {
   });
 
   } else {
-    res.send('{ orders: -1 }');
+    res.send('{ }');
   }
 });
 

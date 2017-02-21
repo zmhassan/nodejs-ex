@@ -16,7 +16,7 @@
 
 
   <script>
-    var socket = io.connect("http://"+location.hostname+":4200");
+    var socket = io.connect("http://localhost:4200");
 
 
 var notify=function(title,text){
@@ -56,8 +56,9 @@ var submitForm=function(){
 // RUN THIS
 $.get( "/foodService", function( data ) {
   $.each(data, function(index, item) {
+  //  item.orders!=-1
     $("#orderBackLog").append("<li class=\"list-group-item\">"+item.orders+"</li>");
-  })
+  });
 });
 </script>
 
